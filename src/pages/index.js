@@ -8,15 +8,14 @@ export default function App() {
     return (
       <div className={style.mainContainer}>
         <div className={style.dataContainer}>
-          <div className={style.header}>👋 Hey there!</div>
+          <div className={style.header}>🖼 Meme art collection</div>
 
           <div className={style.bio}>
-            I am farza and I worked on self-driving cars so that's pretty cool
-            right? Connect your Ethereum wallet and wave at me!
+            Hey there! Meme police 🚓. Send the last meme you have saved RIGHT NOW!
           </div>
 
           <button className={style.waveButton} onClick={wave}>
-            Wave at Me
+            Upload 👾
           </button>
         </div>
       </div>
