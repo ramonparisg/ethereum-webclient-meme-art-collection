@@ -6,8 +6,8 @@ import { abi as contractABI } from "../utils/MemeArtCollectionPortal.json";
 
 export default function App() {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [memes, setMemes] = useState([]);
-  const address = "0xAa9e376eeB802f2804cfd7B4190a063D1fa7a6F0";
+  const [posts, setPosts] = useState([]);
+  const address = "0xB53B2eC1252d20d6fF4Eb7d34154A3bAb35Bf640";
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -33,8 +33,10 @@ export default function App() {
 
   useEffect(async () => {
     await checkIfWalletIsConnected();
-    await fetchMemesPost();
-  }, []);
+    if (!currentAccount) {
+      await fetchMemesPost();
+    }
+  }, [currentAccount]);
 
   const fetchMemesPost = async () => {
     const { ethereum } = window;
@@ -43,9 +45,9 @@ export default function App() {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(address, contractABI, signer);
 
-      const memes = await contract.getTotalMemes();
-      setMemes(memes);
-      console.log("Total memes", memes);
+      const posts = await contract.getPosts();
+      console.log("Total memes", posts);
+      setPosts(mapPosts(posts));
     }
   };
 
@@ -72,16 +74,32 @@ export default function App() {
     }
   };
 
-  const publishMeme = async () => {
+  const mapPosts = (totalPosts) =>
+    totalPosts?.map(({ meme, ...post }) => ({
+      author: post.author,
+      timestamp: new Date(post.timestamp * 1000),
+      meme: {
+        imgUrl: meme.imgUrl,
+        title: meme.title,
+        description: meme.description,
+      },
+    }));
+
+  const postMeme = async () => {
     const { ethereum } = window;
     if (ethereum) {
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(address, contractABI, signer);
 
-      let txn = await contract.uploadMeme(
-        "https://i.ytimg.com/vi/qs95bL3voo0/hqdefault.jpg"
-      );
+      const meme = {
+        imgUrl: "https://i.ytimg.com/vi/qs95bL3voo0/hqdefault.jpg",
+        title: "Milky Chávez",
+        description: "Chávez with a bag of milk on his head",
+      };
+
+
+      let txn = await contract.publishPost(meme);
       await txn.wait();
     } else {
       alert("Wallet not connected!");
@@ -96,7 +114,7 @@ export default function App() {
           Hey there {currentAccount}! Meme police 🚓. Send the last meme you
           have saved RIGHT NOW!
         </div>
-        <button className={style.waveButton} onClick={publishMeme}>
+        <button className={style.waveButton} onClick={postMeme}>
           Upload 👾
         </button>
         {!currentAccount && (
@@ -104,8 +122,8 @@ export default function App() {
             Connect Wallet
           </button>
         )}
-        {memes.map((m) => (
-          <img src={m} />
+        {posts.map(({ meme, ...post }, i) => (
+          <img key={i} src={meme.imgUrl} />
         ))}
       </div>
     </div>
